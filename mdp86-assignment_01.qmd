@@ -1,0 +1,222 @@
+---
+title: "Problem Set 01"
+author: "Mansi Patel, mdp86"
+date: 2025-08-29
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+# Homework
+
+## Problem 1
+### answer throughout the document
+
+    
+* features of the R markdown include
+  + contains title and author
+  + contains first, second, and third level header
+  + contains an un-ordered list with two levels
+    - this is an un-ordered list
+  + contains ordered list with at least two levels
+  + includes hyperlink to a website. Following website was used to assist with this homework: <https://quarto.org/docs/authoring/markdown-basics.html>
+  + it also includes a footnote [^1]. 
+
+
+1. other features of the R markdown included
+   i) ordered list
+      A.  this is an ordered list
+    ii) contains **bold**, *italicized*
+    iii) contains verbatime code. this files is stored in `~/Bio724` 
+    iiii) table is below
+    
+    
+    **table**
+    
+    | species | body_mass_g | sex |
+|------:|:-----|---------|:------:|
+|   Adelie  |  3750  |    male   |   
+|   Adelie  |  3800  |    female   |  
+|   Adelie  |  3250  |    female   |   
+
+
+## Problem 2
+```{r}
+10+2
+#performs addition
+```
+
+```{r}
+10-2
+#performs subtraction
+```
+
+```{r}
+10*2
+#performs multiplication
+```
+
+```{r}
+10/2
+#performs division 
+```
+
+```{r}
+10^2
+#performs power calculation. 10 raised to the power of 2
+```
+
+```{r}
+10**2
+#also performs power calculation. 10 raised to the power of 2
+```
+
+```{r}
+10%%3
+#when 10 is divided by 3, the remainder is 1. %% provides remainder of the the first number divided by the second
+```
+
+```{r}
+10%/%3
+#the results are subject to representation error. the answer should be 3.333. but 3 is represented as a binary fraction slightly larger than 3, so it rounds to 3. 
+
+```
+
+## Problem 3
+```{r}
+(10 + 2)/4-5  # this performs 10+2 first, then divide the output by 4, and then subtract 5 following the order of operation
+
+(10 + 2)/(4-5) # this performs 10+2 first, then performs 4-5. then divides the output of 10+2 by the output of 4-5 following the order of operation. 
+
+#because of the differing placements of the (), the order of operation differs so the results are different. 
+```
+
+
+## Problem 4
+```{r}
+sqrt(10)
+10 ^ 0.5 # compare to sqrt(10)
+
+#sqrt performs square root of 10. 
+#10^0.4 performs the operation 10 to the 0.5, which is 10 to the 1/2, which is the same as the square root of 10. so the above two operation have the same result
+```
+
+```{r}
+log(10) # the default base here seems to be e. log base e of 10 returns the same output as log(10)
+```
+
+```{r}
+log10(10)
+#performs log base 10 of 10
+```
+
+```{r}
+exp(1) # the default seems to e. so e to the power of 1 is e, which 2.71828 same as the output here
+
+```
+
+```{r}
+abs(-10)
+#returns absolute value
+```
+
+```{r}
+sin(3.14) # bad approximation
+#calculates sine of 3.14.
+```
+
+```{r}
+cos(3.14)
+#calculates cosine of 3.14
+```
+
+```{r}
+pi # R has a predefined value for pi, still an approximation of course
+#returns the value of pi with 6 decimal points
+```
+
+```{r}
+sin(pi)  
+#calculates sine of pi using better approximation of pi than before. With pi,the answer is more accurate than using 3.14
+```
+
+```{r}
+cos(pi)
+#calculates cosine of pi using better approximation of pi than before. With pi,the answer is more accurate than using 3.14
+```
+
+## Problem 5
+```{r}
+1/0 
+-1/0
+0/0
+#all of the above include division by 0 and division by 0 is undefined. 
+```
+
+
+## Problem 6
+```{r}
+10 > 2  #this is a true statement and it returns true
+```
+
+```{r}
+10 < 2 #this is false statement and it returns false
+
+```
+
+```{r}
+10 < (2 * 5) #since 10=10, this statemtns is false and it returns false.
+
+```
+
+```{r}
+10 <= (2 * 5) #10 is greater than or equal to 10, so this statement is true and it returns true. 
+
+```
+
+```{r}
+10 >= (3 * 3) #10 is greater than or equal to 9, so this statement is true and it rerns true. 
+```
+
+```{r}
+10 == (2 * 5) #10=10, so this statement is true and it returns true. 
+
+```
+
+```{r}
+10 != (2 * 6) #10 is not equal to 12, which is a true statment and it returns true
+```
+
+## Problem 8
+```{r}
+sqrt(4) #performs the square root operation
+```
+
+```{r}
+sqrt(10) #performs the square root operation
+```
+
+```{r}
+sqrt(4)^2 #this takes square root of 4 and then squares it, which is 4
+```
+
+```{r}
+sqrt(10)^2 #this takes square root of 10 and then squares it, which is 10
+```
+
+```{r}
+sqrt(4)^2 == 4 #square of the square root of 4 is 4, so this statement is true
+```
+
+```{r}
+sqrt(10)^2 == 10 #square of the square root of 10 is 10, so this statement is true
+```
+
+```{r}
+all.equal(sqrt(10)^2, 10) # look up help for all.equal
+#all.equal compares sqrt(10)^2 to 10. since sqare of the square root of 10 is 10, it is a true statement
+```
+[^1]: Here is the footnote.
