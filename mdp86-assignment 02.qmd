@@ -1,0 +1,254 @@
+---
+title: "mdp86-assignment_02"
+author: "Mansi, mdp86"
+date: 2025-09-04
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+# Problems
+
+### 1 working with atomic vectors
+
+Describe problem 1
+
+```{r , error=TRUE}
+v1 <- c(27L, 3.14159, 42)
+typeof(v1) #double
+
+v2 <- c(TRUE, 1, 0, 66, FALSE)
+typeof(v2) #double
+
+v3 <- c(2.0, 2L, "2", "two")
+typeof(v3) #character
+
+v4 <- c("FALSE", 0, FALSE)
+typeof(v4) #character
+```
+* v1 contains integer and double. double is more general here
+* v2 contains logical data type and double. the type here was double which was surprise for me. It seems like R reads TRUE and FALSE as binary. the vector also contains double. 
+* v3 contains double, integer, and characters. Characters is the more general here since doubles and integers can be converted to characters, but doubles cannot be converted to character
+* v4 contains character, double, and logical data types. character is the most general. 
+* overall, character is the most general data type of all
+
+
+### 2. 
+
+Describe problem 2.
+
+```{r , error=TRUE}
+v5 <- c(TRUE, T, FALSE, F, NA)
+typeof(v5)
+v5a <- c(1, 0, 1, 0, 1, 0)
+typeof(v5a)
+
+v6 <- c(true, t, false, f, na)
+typeof(v6)
+
+v7 <- c("TRUE", "T", "FALSE", "F", "NA")
+typeof(v7)
+
+v8 <- as.logical(c(101, -1, 0, 1))
+typeof(v8)
+v8a <- as.logical(c(101L, -1L, 0L, 1L))
+typeof(v8a)
+
+v9 <- as.logical(c("hello", "", 'world', ''))
+typeof(v9)
+
+v10 <- as.logical()
+typeof(v10)
+
+v11 <- as.logical(NA)
+typeof(v11)
+
+v11a <- sum()
+typeof(v11a)
+
+v11b <- as.logical(sum())
+typeof(v11b)
+v11c <- as.logical(as.logical())
+typeof(v11c)
+
+```
+* data types: double, integer, character, logical
+* v5 TRUE, FALSE, T, F, NA. NaN, doubles, integers, 0, 1 are stored as logical type
+* v6 has lowercase true and false, which r thinks is an object so it throws an error
+* v7 has characters, which is not logical vector. 
+* v8 uses as.logical turns doubles into logical vector. it coerces 0 into FALSE and everything else into TRUE
+* v9 uses as.logical turns character into logical vector
+* v10 uses as.logical turns empty vector into logical vector
+* v11 uses as.logical turns NA into logical vector
+* vector with empty sum function is integer type. vector with sum function in an integer. so it turned integer into logical 
+* overall, as.logical seems to turn double, intergers, and characters into logical vector. as.logical turns functions into logical vectors. it coerses every data type into logical. it coerses 0 into FALSE, other integers/doubles into TRUE, and characters into NA. empty as.logical function returns empty. empty sum function within as.logical returns FALSE; this can be due to empty sum function being read as 0 and as.logical returns FALSE for 0. 
+
+
+
+### 3. 
+
+Describe problem 3.
+
+```{r , error=TRUE}
+p1 <- 1:11
+p1a <- "A":"B" #doesn't work
+
+p2 <- 5:-5
+p2a <- 5:pi #ignores values after decimal point
+5.5:7 #default is that it will start at the first values and output values at the interval of 1
+
+p2b <- 0.1:0.5 # this only returns 0.1. because at the interal of 1, the next number should be 1.1, which is out of the range. 
+p2b <- 0.1:5.5 
+
+5:-5
+-5:5
+
+
+
+p3 <- seq(0, 200, by = 5)
+p4 <- seq(20, 10, by = -1.5)
+# the order of the numbers matter. for example,  seq(20, 10, by = 1.5) won't work. it will have to be -1.5 for it to work since we want the numbers to go from 20 to 10.
+
+
+p5 <- rep(c(1:5), times = 3)
+rep(c(1:5), times = 0). # if the times argument is 0, the vector would be empty 
+rep(c(1:5), times = -1) # if the times argument is negetive, it won't run as expected 
+rep(c(1:5), times = 3.5)
+
+
+p6 <- rep(c(3,5,7), each = 3)
+rep(c(3,5,7), each = 3.5)
+
+```
+
+* : will output values in the range specified by :. it takes the first number in the range and provides output at the interval of 1. the limitation is that it works only with the interval of 1. for example, we cant generate 0.1, 0.2, 0.3, 0.4,... using the : operator
+* seq takes in the starting value and end value and outputs values within that range with the intervals specified by by. 
+* rep is for repeat. if times argument is specified to be x, then it will repeat the entire series x times. if each argument is specified to be y, then it will reapeat the first value y times, then the second value y times and so on. 
+
+### 4. 
+```{r , error=TRUE}
+my_vec <- c(3, 4, 7, 9999, 2, 9)         # 9999 sometimes represents missing data!
+my_vec[my_vec == 9999] <-NA
+my_vec
+my_vec <- c(my_vec, 6, 3)
+my_vec
+my_vec[c(2, 3,5)]
+
+your_vec <- c(55, NA, 52, 58, NA, NA, 49, 60, NA)
+replace(your_vec, is.na(your_vec), 0)
+
+```
+
+
+### 5.
+```{r , error=TRUE}
+my_list <- list(27, c(1:7), "banana", c(FALSE, FALSE, TRUE, FALSE, TRUE))   
+length(my_list)
+
+new_1 <- my_list[2]
+new_2 <- my_list[[2]]
+
+as.double(new_1)
+as.double(new_2)
+
+
+new_3 <- my_list[1]
+new_4 <- my_list[[1]]
+as.double(new_3)
+as.double(new_4)
+
+```
+* R considers 27 as one item, c(1:7) as one item, banana as one item, and c(FALSE, FALSE, TRUE, FALSE, TRUE)) as one item. so total 4 items
+* indexing using [] extracts, c(1:7). indexing using [[]] extracts s1:7
+* my_list[2] outputs is a list so it cannot be coerced to type 'double'. this is because the second object is a vector. [[]] seems to remove the vector property of the object, which would allow as.double to work in this case. if we repeat as above with first object in the list, then it will work without errors for both methods of indexing because the first item is not a vector. 
+
+###6
+```{r , error=TRUE}
+study_sites <- list("windy_ridge" = list(2235, "grassland"), 
+                    "pine_valley" = list(1450, "forest"),
+                    "stoney_creek" = list(900, "stream"),
+                    "grassy_meadow" = list(1670, "grassland"),
+                    "oak_glen" = list(1302, "forest"))
+
+grassy_meadow <- study_sites[["grassy_meadow"]]
+grassy_meadow_elevation <- grassy_meadow[[1]]
+
+```
+
+###7
+```{r , error=TRUE}
+# generate example data
+sample1 <- rnorm(10, mean = 0, sd = 1)
+sample2 <- rnorm(10, mean = 0.5, sd = 1)
+# carry out a t-test
+t.test(sample1, sample2)
+# assign results to a variable
+test_results <- t.test(sample1, sample2)
+names(test_results)
+p_value <- test_results$p.value
+confidance_interval <- test_results$conf.int
+
+```
+* rnorm generates random values that fit a normal distribution with specified number of observation, mean, and standard deviation. 
+
+
+
+## practice with dplyr
+
+### 8
+```{r , error=TRUE}
+library(readr)
+library(dplyr)
+nc_births <- read_tsv("~/Bio724/nc-births.txt")
+```
+
+### 9, 10
+```{r , error=TRUE}
+births_trimmed <- nc_births %>% select(gained)
+dim(births_trimmed)
+```
+
+### 11
+```{r , error=TRUE}
+nc_births <- nc_births %>% 
+  mutate(weight_kg = weight/1000)
+```
+
+### 12
+```{r , error=TRUE}
+nc_births <- nc_births %>% 
+  arrange(weight)
+```
+
+### 13
+```{r , error=TRUE}
+ten_lightest_babies <- head(nc_births, 10)
+```
+
+### 14
+```{r, error=TRUE}
+nc_births_msmoker_ffourty <- nc_births %>% 
+  filter(smoke == "smoker" 
+         & fAge > 40)
+```
+
+### 15
+```{r, error=TRUE}
+premie <- nc_births %>% 
+  filter(premature == "premie") %>%  
+  select(-premature)
+
+```
+
+### 16
+```{r, error=TRUE}
+premie %>% 
+  group_by(smoke) %>% 
+  summarise(median = median(weight))
+```
+
+
+# Data lunch assignment
+* I found the approach to studying brain evolution very clever. Specifically, identifying non-coding regions that were under positive selection, identifying genes expressed during brain development in mice, and identifying genes expressed in humans only in their brains to complement each other to get a better understanding of brain evolution. 
