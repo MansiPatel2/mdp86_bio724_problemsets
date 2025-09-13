@@ -1,0 +1,81 @@
+---
+title: "mdp86-assignment_03"
+format: html
+editor: visual
+---
+
+### **Problems**
+
+Using the [NC Births dataset](https://github.com/Bio723-class/example-datasets/raw/master/nc-births.txt), generate the following plots. For each plot use appropriate readable axis labels, colors, etc.
+
+1.  A scatter plot showing the relationship between weeks of gestation and birth weight, with points colored by birth status (premature vs full term).
+
+2.  A density plot showing the distribution of baby birth weights for smoking and non-smoking mothers. Use `geom_rug` to depict the marginal distributions.
+
+3.  A boxplot comparing birth weight for premature and full term babies, with mother’s smoking status indicated by color.
+
+4.  Draw a scatter plot showing the relationship between mothers age and fathers age. Look up how to use `ggplot2::coord_fixed()` to insure that the x- and y-axes have a fixed ratio, and modify the plot limits to include the origin. Color the points by birth status.
+
+### Load data
+
+```{r}
+library(tidyverse)
+nc_births <- read_tsv("~/Bio724/nc-births.txt")
+```
+
+### 1.
+
+```{r}
+ggplot(data = nc_births, mapping = aes(x = weeks, y = weight, color = premature)) +
+  geom_point()
+```
+
+### 2.
+
+```{r}
+ggplot(data = nc_births, mapping = aes(x = weight, color = smoke)) +
+  geom_density(alpha = 0.5) +
+  geom_rug()
+```
+
+### 3.
+
+boxplot comparing birth weight for premature and full term babies, with mother’s smoking status indicated by color.
+
+```{r}
+ggplot(data = nc_births, mapping = aes(x = premature, y = weight, color = smoke)) +
+  geom_boxplot() + 
+  theme_minimal()
+
+ggplot(data = nc_births, mapping = aes(x = smoke, y = weight, color = smoke)) +
+  geom_boxplot() +
+  facet_wrap(vars(premature)) +
+  theme_bw()
+```
+
+### 4.
+
+Draw a scatter plot showing the relationship between mothers age and fathers age. Look up how to use `ggplot2::coord_fixed()` to insure that the x- and y-axes have a fixed ratio, and modify the plot limits to include the origin. Color the points by birth status.
+
+```{r}
+ggplot(data = nc_births, mapping = aes(x = fAge, y = mAge)) + 
+  geom_point() +
+   coord_fixed(ratio = 1) +
+  xlim(0, 50) +
+  ylim(0, 50) +
+  coord_fixed(ratio = 1)
+
+nc_births_na_dropped <- nc_births %>% drop_na()
+ggplot(data = nc_births_na_dropped, mapping = aes(x = fAge, y = mAge)) + 
+  geom_point() +
+   coord_fixed(ratio = 1) +
+  xlim(0, 50) +
+  ylim(0, 50) +
+  theme_minimal() + 
+  ylab("Mother's age") +
+  xlab("Father's age")
+```
+
+# Data lunch assignment
+
+I found the approach for QTL mapping overtime interesting to be able to better understand developmental changes and responses to changing environmental conditions overtime.
