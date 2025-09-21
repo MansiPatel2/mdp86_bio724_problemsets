@@ -1,0 +1,111 @@
+---
+title: "Problem Set 04"
+author: "Your Name, NetID"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+
+
+
+# Problems
+
+### 1. 
+
+* Using the NC Births dataset (see last week’s HW for details), solve the following problems:
+
++ Write a code block that uses count to get the counts of cases by mother’s smoking status and the baby’s  term status (premature or full term). That is, we want the output to tell us four pieces of information
++ how many non-smoking mothers had full term babies
++ how many non-smoking mothers had premature babies
++ how many smoking mothers had full term babies
++ how many smoking mothers had premature babies.
+
+```{r}
+library(readr)
+library(dplyr)
+nc_births <- read_tsv("~/Bio724/nc-births.txt")
+
+nc_births |> 
+  group_by(smoke, premature) |> 
+  count()
+```
+
+
+### 2 
+* Use group_by and summarize to calculate the median weights of babies for all four combinations of term classification and mother’s smoking status.
+
+```{r}
+nc_births |> 
+  group_by(smoke, premature) |> 
+  summarize(median_weight = median(weight))
+```
+
+
+
+### 3 
+Use the penguins data from the palmerpenguins package in the following problems:
+* slice is a dplyr function that allows you to index rows by their integer locations. Show how to use the seq function and slice to get every fifth row in the penguins data set.
+```{r}
+penguin_data <- read.csv("~/Bio724/penguins.csv")
+
+#penguin_data |> 
+  #slice(1:344, by = 5 )
+
+penguin_data |> 
+  slice(seq(1, 344, by = 5)) #starting at the first row
+
+
+penguin_data |> 
+  slice(seq(5, 344, by = 5)) #starting at the fifth row
+
+```
+
+### 4
+Read the help documentation for the dplyr function slice_sample and then write a pipeline uses group_by and slice_sample that selects 5 random individuals from each of the species in the penguins data set.
+
+```{r}
+#slice_sample() randomly selects rows.
+
+penguin_data |> 
+  group_by(species) |> 
+  slice_sample(n = 5)
+```
+
+
+### 5
+Complete the following code to create an ordered factor with the categories “Low”, “Intermediate”, and “High”, indicating a coarse categorization of FLO11 expression as illustrated in the figure above:
+
+```{r error = TRUE}
+library(ggplot2)
+
+yeast <- read_csv("seg_strain_table.csv")
+
+yeast |>
+  mutate(Flo11.group = cut(Flo11.expr,
+                           breaks = c(0, 100000, 300000, 800000),
+                           labels = c("low", "intermediate", "high"),
+                           ordered_results = TRUE)
+         ) |>
+  filter(!is.na(Flo11.group)) |>
+  ggplot(aes(x = Flo11.group, y = Flo11.expr)) + 
+  geom_point(alpha=0.5) + 
+  labs(x = "FLO11 Factor", y = "FLO11 Expression")
+
+
+
+```
+
+
+
+## Data lunch
+
+Learning about visual studio code and the feture for by passing the password step when logging into DCC was very helpful. I will implement these in my work and i think it will help eliminate some tidious steps. 
+
+
+
+
