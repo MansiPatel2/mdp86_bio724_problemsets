@@ -1,0 +1,158 @@
+---
+title: "Problem Set 05"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+
+### 1 import the data, fixing any column naming issues.
+```{r}
+library(readr)
+library(dplyr)
+library(tidyverse)
+gasch1k <- read_csv("gasch1k.csv",
+                    col_names = TRUE) |> 
+                    rename(experimental_condition = "...1")
+
+```
+
+### 2 Remove any columns (genes) that have more than 10 missing values (‘NA’)
+```{r}
+gasch1k_trimmed <- gasch1k |> 
+  select(where(~ sum(is.na(.)) <= 10))  # lookec up the correct notation for sum(i.na(.))
+```
+
+### 3 Subset the rows of the data set to include ONLY the experimental conditions that have time points on the scales of minutes (conditions with “min”, “minutes”, etc).
+```{r}
+gasch1k_min <- gasch1k_trimmed |> 
+  filter(grepl("min|minutes", experimental_condition))
+```
+
+### 4 Apply pivoting to create a “long” version of the data frame with “gene” and “expression” as their own columns
+```{r}
+gasch1k_long_data <- gasch1k_min |> 
+  pivot_longer(cols = -experimental_condition,
+               names_to = "gene", 
+               values_to = "expression")
+
+gasch1k_min
+```
+
+### 5 CHALLENGING/ADVANCED: See if you can come up with a strategy for extracting the time information from the experimental condition column. The inconsistency of the naming scheme makes this a difficult and frustrating task. A verbal description of what steps you’d take to solve this problem is sufficient. If you manage to write code to solve this, your string wrangling skills are already quite strong!
+ i would extract the string before the "min" (including min or minute). Then extract the last part of the last part of the string thati s seperate by "."
+
+
+
+### 6 Imagine a situation where you are working with data from a weather station. Each month, you receive a .csv file containing the latest data: one row for each day and 7 columns reporting the date, rainfall, minimum and maximum temperatures, etc. Because the data are always delivered in the same way, you decide to use bind_rows() to attach each month’s new data to your existing data frame. One month, you receive a .csv file that when merged generates a data frame with 11 columns instead of the expected 7. Upon examination of new .csv file, you discover that some of columns have been assigned slightly modified names.
+
+a. Why did this cause the merge operation to create additional columns?
+  the 7 column names might have been named slightly differently. if the column namaes dont match exactly, then the bind_rows() would creat new columns and fill empty fields with na. 
+
+b. You could write some code to rename the columns before you merge each new data frame, and continue to use bind_rows() to append the data. However, this won’t protect you from future changes in column name.
+
+c. How could using a join rather than a merge avoid this kind of problem in the future? What specific join method would be appropriate for this situation? Which column(s) would you use for the join?
+  merge will keep columns from both dataframes and keep them seperated even if ends up with multiple columns with the same name. Join will prevent repetition of the columns. although, i am not sure how join would work better than bind_row() here since we are trying to stack rows from different files. 
+  
+
+d. Having thought through these considerations, provide sample code that implements a join to append the weather data.
+  not sure how to do this. My thoughts are that instead of matching exact column names, i can try to match with patterns in strings. for example, set it such that any column name containing the string "temp", to keep it under temperature column. 
+
+e. Would this method of appending monthly data work no matter how the columns are named? Would it work if the columns kept the same names but were present in a different order? Would it work if additional columns were added to the monthly data files?
+
+
+
+### 7 Joins provide a useful way to combine data from two different data frames. Joins are also very commonly used to extract specific information by drawing from two data frames at once. To do this using dplyr tools, you can follow a join with filter, arrange, and/or select to create powerful queries. Using the yeast_spellman-1998-expression.tsv file used in class answer the following:
+```{r}
+# import the two data sets
+spellman <- read_tsv("spellman-1998-expression.tsv")
+GO <- read_tsv("go_slim_mapping.tab", col_names = FALSE)
+
+# prepare the GO data frame: remove unnecessary columns, provide column names, and pivot wider
+GO <- select(GO, X1, X2, X4, X5, X7)
+GO <- rename(GO, gene_ID = X1, gene_name = X2,GO_cat = X4, GO_term = X5, gene_type = X7)
+GO_wide <- pivot_wider(GO, names_from = GO_cat, values_from = GO_term)
+# note the somewhat awkward list when multiple GO terms exist for a single category
+
+# now add some informative names to the GO columns
+GO_wide <- rename(GO_wide, cellular_component = C, molecular_function = F, biological_process = P)
+
+# perepare the Spellman data frame: repair the first column name
+spellman <- rename(spellman, "gene_ID" = "...1")   # using quotes because the current name is weird
+
+# left join to add GO terms to every gene
+spellman_GO_annotated <- left_join(spellman, GO_wide, by = join_by(gene_ID))
+glimpse(spellman_GO_annotated)
+
+
+```
+
+
+How many yeast genes that are expressed in the nucleus show a decrease in gene expression in the “alpha7” experiment? To answer that question, left join the two data frames as we did in class, then pipe the result into a filter for “nucleus” in column C, then pipe that result into a filter for <0 in column alpha7, then pipe that result into nrow(). Try it out! You should get 472.
+```{r}
+# left join to add GO terms to every gene
+spellman_GO_annotated <- left_join(spellman, GO_wide, by = join_by(gene_ID))
+
+#unique(GO_wide$cellular_component)
+#unique(spellman_GO_annotated$cellular_component)
+
+spellman_GO_annotated |> 
+  filter(cellular_component == "nucleus" & alpha7 <=0) |> 
+  nrow()
+
+
+```
+
+
+Now use this approach to answer a few more questions. For each, write the entire process as a single pipe rather than a sequence of individual commands.
+
+How many ribosomal RNA genes increase in expression in both experiment alpha7 and alpha14? (Hint: filter for “rRNA_gene” in column gene_type.)
+```{r}
+unique(GO_wide$gene_type)
+unique(spellman_GO_annotated$gene_type) # in the joined dataset, rRNA gene doesnt show up in gene type
+
+spellman_GO_annotated |> 
+  filter(gene_type == "rRNA_gene") |> 
+  filter(alpha7 >= 0) |> 
+  filter(alpha14 >= 0) |> 
+  nrow()
+
+```
+
+
+Which ribosomal RNA gene decreased in expression the most in experiment alpha7?
+```{r}
+# in the joined dataset, rRNA gene doesnt show up in gene type
+spellman_GO_annotated |> 
+  filter(gene_type == "rRNA_gene") |> 
+  filter(alpha7 <= 0)
+```
+
+
+How many genes that are not expressed in the nucleus increased in expression in alpha7
+
+```{r error=TRUE}
+
+# in the joined dataset, nuclear component doesnt show up in gene type
+spellman_GO_annotated |> 
+  filter(-cellular_component == "nucleus") |> 
+  filter(alpha7 >= 0) |> 
+  nrow()
+```
+
+ 
+
+I had isssues with joining. when i used left_join, some of the variables were gone from the resulting file. 
+
+
+
+
+### Data lunch assignment
+
+I found the use of phylogenetic linear model interesting. I wasn't aware of the methods to incorporate evolutionary jistory and relatedness in linear regression model. 
+
