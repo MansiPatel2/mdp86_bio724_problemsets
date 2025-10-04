@@ -1,0 +1,106 @@
+---
+title: "Problem Set 06"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+### 1
+<https://pubmed.ncbi.nlm.nih.gov/39392750/>
+Fig 4, panel G and N
+these figures has y axis structure that can easily me misinterpreted. the difference beween the two conditions look bigger than it actually is. while it might me justifiable, i think it should the actually poings for the daf-2 should have been not too close to 0 because it makes it look like it is 0, but it probably isn't. 
+
+![n](n.png)
+![g](g.png)
+
+
+
+### 2 
+```{r}
+library(palmerpenguins)
+library(ggplot2)
+library(tidyverse)
+library(RColorBrewer)
+
+# ggplot2 extensions
+library(ggrepel)
+library(GGally)
+library(plotly)
+
+# packages requiring extra installation steps
+library(ggmagnify)
+
+# data
+library(palmerpenguins)
+
+```
+
+```{r}
+data <- penguins
+
+plot <- 
+  ggplot(data = data,
+       aes(x = flipper_length_mm, 
+           y = bill_length_mm)) +
+  geom_point(na.rm = TRUE, alpha = 0.5) + 
+  labs(x = "Flipper length (mm)",
+       y = "Bill length (mm)",
+       title = "Data source: Palmer penguins") +
+  theme_bw()
+
+ggplotly(plot) #flipper legnth 181, bill length 58 is the outlier point
+
+```
+```{r}
+ggplot(data = data,
+       aes(x = flipper_length_mm, 
+           y = bill_length_mm)) +
+  geom_point(na.rm = TRUE, alpha = 0.5, size = 1.5) + 
+ geom_point(aes(x = 180.5, y = 58), 
+            color = "red", size = 3) + 
+  annotate("segment", 
+           x = 190, y = 60, 
+           xend = 181, yend = 58,
+           arrow = arrow(length = unit(0.3, "cm"), 
+                         type = "open")) + 
+  annotate("text",
+           x = 195,
+           y = 60,
+           label = "Outlier?") + #looked up the syntax for annotate and the segment and text features 
+  
+  labs(x = "Flipper length (mm)",
+       y = "Bill length (mm)",
+       title = "Data source: Palmer penguins") +
+  theme_bw()
+```
+```{r}
+data_for_heatmap <-
+  read_csv("nytimes-covid-data-us-states_2022-02.csv")
+
+
+display.brewer.all()
+color.scheme <- brewer.pal(9,"Reds")
+
+ # not states: Puerto Rico, Virgin Islands, Guam, Northern Mariana Islands, American Samoa
+
+data_with_states_only <-
+  data_for_heatmap |> 
+  filter(!state %in% c("Puerto Rico", "Virgin Islands", "Guam", "Northern Mariana Islands", "American Samoa", "Hawaii"))
+unique(data_with_states_only$state)
+
+
+
+data_with_states_only |>
+  ggplot(aes(x = date, y = state, fill = deaths_avg_per_100k)) + 
+  geom_raster() +
+  scale_fill_gradientn(colors = color.scheme,
+                       limits = c(0, 5))
+```
+
+### data lunch
+This weeks data lunch session was about the final project involving finding and recreating an image from a published paper with available dataset
