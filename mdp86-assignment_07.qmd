@@ -77,3 +77,5 @@ cleaned_data |>
          shape = guide_legend(title = "Pathogen Type")) 
 ```
 
+Data lunch
+this weeks lunch was about learning the duke OIT resourses. One of the things i learned was that Biology department offers Biorender subscription which i wasnt aware of. 
