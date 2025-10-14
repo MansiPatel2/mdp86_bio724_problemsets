@@ -1,0 +1,79 @@
+---
+title: "Problem Set 07"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+```{r}
+library(readr)
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)
+library(janitor)
+```
+
+```{r}
+data <- read_csv("Microbescope_original_data.csv") |> clean_names()
+names(data)[1] <- "disease"
+data <- data[-1, ]
+
+data$case_fatality_rate <- substr(data$case_fatality_rate, 1, nchar(data$case_fatality_rate) - 1) # looked this up. "removing the last character in r "
+
+data <-
+  data |> 
+  mutate( case_fatality_rate= as.double(case_fatality_rate)) |> 
+  mutate(average_basic_reproductive_rate = as.double(average_basic_reproductive_rate))
+
+cleaned_data <- 
+  data |> 
+  select(c(disease, case_fatality_rate, average_basic_reproductive_rate, pathogen_type, primary_mode_of_transmission))
+
+```
+
+
+```{r error=TRUE}
+my_colors <- c("#335060","#9d9353","#e13698","#37251e",
+               "#81aea3","#ff8106","#888888", "firebrick")
+
+cleaned_data |> 
+  drop_na() |> 
+  filter(average_basic_reproductive_rate < 20) |>
+  ggplot(aes(x = average_basic_reproductive_rate,
+             y = case_fatality_rate, 
+             shape = pathogen_type,
+             color = primary_mode_of_transmission)) +
+  # draw background rectangles
+  geom_rect(aes(ymin=0, ymax=1,xmin=-1,xmax=21), 
+            alpha=0.003,color='#D3D3D3', linetype="dashed") +
+  geom_rect(aes(ymin=20, ymax=50,xmin=-1,xmax=21), 
+            alpha=0.003,color='#D3D3D3', linetype="dashed") +  
+  # draw points
+  geom_point(size=4, alpha=0.6) + 
+  scale_color_manual(values = my_colors) +
+  # draw labels
+  geom_text_repel(aes(label=disease), 
+                  size = 4,
+                  force = 1,
+                  force_pull = 2) +  
+  scale_y_sqrt(breaks=c(0,0.1,1,seq(10,100,10)),
+               minor_breaks = NULL, 
+               sec.axis = dup_axis(name = "",
+                                   breaks = c(0.2, 8, 35, 80),
+                                   labels = c("Less deadly", "Quite deadly", "Deadly", "Extremely Deadly"))) +
+
+  coord_cartesian(xlim = c(0,20)) +
+  labs(x = "Contagiousness: R0",
+       y = "Deadliness: Case fatality rate (%)") +
+  
+  theme_bw() +
+  theme(legend.position = "top", legend.background = element_rect(size = 0.5, colour='grey')) +
+  guides(color = guide_legend(title = "Primary Mode of Transmission"),
+         shape = guide_legend(title = "Pathogen Type")) 
+```
+
