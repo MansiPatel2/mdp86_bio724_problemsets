@@ -1,0 +1,94 @@
+---
+title: "Problem Set XX"
+author: "Mansi Patel, mdp*6"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyverse)
+gasch1k <- read_csv("gasch1k.csv",
+                    col_names = TRUE) |> 
+                    rename(sample = "...1")
+
+```
+
+
+### 1
+```{r}
+
+gasch1k <-
+  gasch1k |> 
+  mutate(sample = str_replace(sample,
+                          regex("^heat\\.shock\\.", ignore_case = TRUE), "Heat.shock."))
+
+```
+
+### 2
+```{r}
+gasch1k <- 
+  gasch1k |> 
+  mutate(sample = str_replace(sample, regex("minutes", ignore_case = TRUE), "min"))
+```
+
+### 3
+```{r error=TRUE}
+
+
+# find the values infront of d
+#extrac the value and convert that to hrs by multiplying tht by 24
+#replace the original number by this new number
+#replcace d to h
+
+
+
+#looked up the how to replace with calculated values iinstead of the same thing. found the use of function(x)
+gasch1k |> 
+  mutate(sample, regex("([0-9]+\\.?[0-9]*)\\.d\\b", ignore_case = TRUE),
+         function(x){
+           days <- as.numeric(str_extract(x, "[0-9]+\\.?[0-9]*"))
+           hrs <- days*24
+           paste0(hrs, ".h")
+         })
+
+
+#not sure how to make this work
+
+```
+
+### 4
+```{r}
+#Looked up ways for conditional change with strngr
+gasch1k <- gasch1k |> 
+  mutate(condition = ifelse(str_detect(sample, "\\.to\\."), "temp_shift", "no_temp_shift"))
+
+```
+
+### 5
+```{r}
+#add DTT or no DTT to condition column in addition to what is already there
+
+final <- gasch1k |> 
+  mutate(condition = 
+           ifelse(str_detect(sample, regex(".DTT.", ignore_case = TRUE)),
+            ifelse(condition == "", "DTT_exposure", paste(condition, "_DTT_exposure")),
+  condition))
+
+final |> select(sample, condition)
+
+```
+
+```{r}
+final |> 
+  mutate(DTT_concentration_mM = ifelse(str_detect(condition, "_DTT_"), "5", "") )
+```
+
+### data lunch
+it was interesting to learn about API and how it contains various different types of data such as information and rivers. It seems like a very useful resource as it contains so many data sets collected over years. 
