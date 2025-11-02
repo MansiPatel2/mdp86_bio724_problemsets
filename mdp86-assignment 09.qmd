@@ -1,0 +1,233 @@
+---
+title: "Problem Set 09"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+```{r error=TRUE}
+library(readr)
+library(tibble)
+library(stringr)
+library(dplyr)
+
+```
+
+```{r error=TRUE}
+get_stanzas <- function(poem) {
+  # input: a single string representing one or more stanzas, 
+  #        stanzas separated by newlines
+  # output: a vector of strings, each string representing a stanzas
+  stanzas <- str_split_1(poem, "\n\n")
+  return (stanzas) # return the vector of stanzas
+}
+
+count_lines <- function(stanza) {
+  # input: a single string representing a single stanza
+  #         each line separated by a newline
+  # output: an integer giving the number of lines in the stanza
+  lines <- str_split_1(stanza, "\n")
+  return (length(lines))
+}
+
+count_words <- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of words in the stanza
+  words <- 
+    stanza |> 
+    str_squish() |>
+    str_split_1("\\s")
+  
+  return (length(words))
+}
+
+count_alphabetical<- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of alphabetical characters in the stanza
+  return (str_count(stanza, "[:alnum:]"))
+}
+
+count_punctuation <- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of punctuation characters in the stanza
+  return (str_count(stanza, "[:punct:]"))
+}
+
+
+analyze_poem <- function(poem) {
+  # input: a single string representing one or more stanzas, 
+  #        stanzas separated by newlines
+  # output: a data frame, each row representing a stanza and the corresponding
+  #        metrics calculated above
+  
+  df <- tibble(
+    stanza = integer(),
+    num_lines = integer(),
+    num_words = integer(),
+    num_alpha = integer(),
+    num_punct = integer()
+  )
+  
+  # extract the stanzas
+  stanzas <- get_stanzas(poem)
+  
+  # iterate over the stanzas with a for-loop
+  # growing the data frame by one row at a time
+  for (i in 1:length(stanzas)) {
+    df <-
+      df |>
+      add_row(
+        stanza = i,
+        num_lines = count_lines(stanzas[i]),
+        num_words =  count_words(stanzas[i]),
+        num_alpha = count_alphabetical(stanzas[i]),
+        num_punct = count_punctuation(stanzas[i])
+      )
+  }
+  return(df)
+}
+
+```
+
+
+### 1
+```{r error=TRUE}
+poem_files <- list.files(pattern = "*.txt",
+                         full.names = TRUE)
+
+poems <- list()
+
+for (p in poem_files){
+  poem_name <- basename(p)
+  poems[[poem_name]] <- read_file(p)
+}
+```
+
+
+### 2
+```{r error=TRUE}
+poem_df <- data.frame(
+  first_name = character(),
+  last_name = character(),
+  title = character(),
+  stanza = integer(),
+  num_lines = integer(),
+  num_words = integer(),
+  num_alpha = integer(),
+  num_punct = integer()
+)
+```
+
+### 3
+```{r error=TRUE}
+results <- list()
+
+for (i in names(poems)) {
+  results[[i]] <- analyze_poem(poems[[i]])
+}
+```
+
+### 4
+```{r error=TRUE}
+for (i in names(poems)) {
+  results[[i]] <- analyze_poem(poems[[i]])
+}
+
+```
+
+```{r error=TRUE}
+for (i in names(poems)) {
+  results[[i]] <- analyze_poem(poems[[i]])
+  
+  #gettting the filename without the .txt at the end
+  names_file <- str_remove(i, "\\.txt")
+  
+  #splitting my "_". it will result in firstname, lastname, and poem name separately 
+  individual_parts <- str_split(names_file, "_")[[1]]
+  
+  # extract individual parts 
+  first_name <- individual_parts[1]          
+  last_name  <- individual_parts[2]
+  poem_name  <- individual_parts[3]
+  
+  results[[i]] <- results[[i]] |> 
+    mutate(
+      first_name = first_name,
+      last_name = last_name,
+      poem_name = poem_name
+    )
+}
+
+#the stranger seemed to have "-" and "_" misplaced. it was separating first and last name with "-" instead of "_". so i just made the appropriate change in the file name. 
+
+poem_df <- bind_rows(results)
+```
+
+### 5
+```{r error=TRUE}
+stanza_complexity <-
+  poem_df |> 
+  group_by(poem_name) |> 
+  summarize(stanza_complexity = mean(num_words))
+
+
+poem_complexity <-
+  poem_df |> 
+  group_by(poem_name) |> 
+  summarise(number_of_stanza = sum(stanza), 
+            average_word = mean(num_words),
+            poem_complexity = number_of_stanza*average_word)
+
+
+punct_metric <-
+  poem_df |> 
+  group_by(poem_name) |> 
+  summarise(median_punct = median(num_punct))
+
+
+
+derived_data_frame <- 
+  stanza_complexity |> 
+  left_join(poem_complexity, by = "poem_name") |> 
+  left_join(punct_metric, by = "poem_name")
+
+
+```
+
+
+```{r error=TRUE}
+derived_data_frame |> 
+  arrange(desc(poem_complexity))
+
+#anyone-lived-in-a-pretty-how-town, circle-game, and caged-bird are the top 3 poems in terms of poem complexity 
+
+
+derived_data_frame |> 
+  arrange(desc(stanza_complexity))
+#meeting at an airport, a litany for survival and colossus are the top 3 poems in terms of stanza complexity
+```
+
+### 6
+```{r error=TRUE}
+derived_data_frame |> 
+  arrange(median_punct)
+
+#caged bird and circle game have the smallest punct matric. 
+
+poem_df |> 
+  subset(poem_name == "Caged-Bird", 
+                  poem_name == "Circle_Game")
+
+
+subset(poem_df, poem_name == "Caged-Bird" | poem_name == "Circle-Game")
+
+#poems by Joni Mitchell's and Maya Angelou's poems have the smallest punct_metric
+```
+
+### data lunch
+
+I thought studying patterns on butterfly wings is very interesting. it was interesting how expression pattern of a gene corresponds to the pattern on the worm and how they can selectively remove certain colors like black from showing up but still maintain the pattern with the rest of the colors. 
