@@ -1,0 +1,111 @@
+---
+title: "Problem Set 10"
+author: "Mansi, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+```{r installations, include = FALSE, silent = TRUE}
+# only run this block once!
+#install.packages("devtools")
+#library(devtools)
+#install_github("helixcn/phylotools", build_vignettes = TRUE)
+```
+
+Load libraries.
+
+```{r set-up, include = FALSE, silent = TRUE}
+library(tidyverse)
+library(phylotools)
+library(cli)
+```
+
+```{r}
+# read/convert fasta file 
+prots <- read.fasta("LatCha_protein.fasta")
+# split the description column
+prots <- prots |> 
+  mutate(identifier = str_sub(seq.name, start = 1, end = 14)) |> 
+  mutate(description = str_sub(seq.name, start = 15, end = -1)) |> 
+  select(identifier, description, seq.text)
+# rename the sequence column
+prots <- rename(prots, sequence = seq.text)
+# remove redundant text
+prots$description <- str_replace_all(prots$description, "\\[Latimeria chalumnae\\]", "")
+```
+
+
+### 1 write a function to find all KDEL locations in a protein
+```{r}
+find_KDEL_location <- 
+  function(identifier) {
+    str_locate_all(prots$sequence, "KDEL")
+  }
+
+str_view(prots$sequence, "KDEL")
+example <- prots[382,]
+find_KDEL_location(example) #working 
+str_length(prots$sequence)
+
+
+# now index from the end. get the length of the protein and then subtract the values provided by str_locat_all
+find_KDEL_location <- function(row) {
+  seq <- row$sequence
+  # flip the sequence
+  reversed_seq <- paste0(rev(strsplit(seq, "")[[1]]), collapse = "")
+  str_locate_all(reversed_seq, "LEDK")
+}
+
+find_KDEL_location(example) 
+
+```
+
+### 2 Write code to apply your function to all proteins.
+```{r}
+
+
+result <- data.frame()
+
+# Loop through each row of prots
+for (i in seq_len(nrow(prots))) {
+  row <- prots[i, ]     # get one row like the indexing i did before to make example
+  res <- find_KDEL_location(row)  # run the function on the row as before
+  locs <- res[[1]]          
+  
+  if (nrow(locs) == 0) {
+    # if No matches are found fill the spalce with NAs 
+    res_df <- data.frame(identifier = row$identifier, start = NA, stop = NA)
+  } else {
+    # if the match is found then add the appropriate location 
+    res_df <- data.frame(identifier = row$identifier, start = locs[, "start"], stop = locs[, "end"])
+  }
+  
+  result <- rbind(result, res_df)
+}
+
+
+# i used the internet (specifically stacks overflow and google) for some of the trouble shooting i needed with syntax
+
+```
+
+
+```{r}
+filtered_data <- 
+  result |> 
+  filter(!is.na(start))
+
+
+filtered_data |> 
+  mutate(start_site = stop, end_site = start) |> 
+  filter(start_site < 100) |> 
+  ggplot(aes(x = start_site)) +
+  geom_density()
+```
+
+### data lunch 
+I was not able to come to the data lunch this week (i had an important experiment that took much longer than expected)
