@@ -1,0 +1,142 @@
+---
+title: "Problem Set 11"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+
+# Instructions
+
+Answer the questions below using code blocks that generate the correct outputs. We encourage you to include explanatory text in your markdown document, however **each of your solutions should show how to generate the answer using R code**. 
+
+Write "robust" solutions wherever possible. A good rule of thumb for judging whether your solution is appropriately "robust" is to ask yourself "If I added additional observations or variables to this data set, or if the order of variables changed, would my code still compute the right solution?"
+
+Make sure your markdown is nicely formatted -- use headers, bullets, numbering, etc so that the structure of the document is clear.
+
+Make sure to "Render" your document before submission to confirm that all code blocks and formatting is as you expect.
+
+When completed, title your markdown file as follows (replace `XX` with the assignment number, e.g. `01`, `02`, etc):
+
+-   `netid_problemset_XX.qmd`
+
+Submit both your markdown file and the generated HTML document via the Assignments submission section on Sakai.
+
+
+
+```{r error=TRUE}
+# only run this code chunck once!
+#install.packages("DBI")
+#install.packages("duckdb")
+```
+
+
+```{r set-up, error=TRUE}
+# load packages
+library("DBI")
+library("duckdb")
+
+# establish a connection to the database
+con <- DBI::dbConnect(
+  drv = duckdb::duckdb(),
+  dbdir = "birding.db",
+  read_only = TRUE
+)
+
+# tell knitr about the connection
+knitr::opts_chunk$set(connection = "con")
+```
+
+```{sql duckdb-pkg-install, connection=con, include=FALSE, silent = TRUE}
+-- only run this code chunck once!
+--INSTALL icu;
+SET default_collation = 'nocase';
+```
+
+
+The Bat Falcon is a predator of small vertebrates and large insects whose range extends from southern Mexico to northern Argentina. What country was Greg in the third time he saw a Bat Falcon? You could construct a single, rather complicated query to get the answer, but for one-off questions like this, it’s usually quicker to break the problem down into several simple and separate queries. In this case, you can get the answer using queries to the species, observations, and locations tables, in that order. Show the three simple queries that uncover the answer.
+
+```{sql interact-1, connection=con, error = TRUE}
+--PRAGMA show_tables;
+```
+
+```{sql interact-2, connection=con, error = TRUE}
+--PRAGMA table_info('species');
+--PRAGMA table_info('observations');
+--PRAGMA table_info('locations');
+```
+
+
+```{sql interact-3, connection=con, error = TRUE}
+--SELECT * FROM species;
+--SELECT * FROM observations;
+--SELECT * FROM locations;
+```
+
+```{sql interact-4, connection=con, error = TRUE}
+
+-- species bat falcon
+SELECT * FROM species WHERE species_familiar == 'Bat Falcon';
+-- observation 3rd 
+SELECT * FROM observations WHERE id_conf == 3;
+-- location 
+SELECT * FROM locations
+
+```
+
+```{sql, jquery-1, connection=con, error = TRUE}
+-- returns a list of all observed species from a given family
+SELECT 
+  species.species_familiar,
+  observations.date_obs,
+  locations.country_name
+FROM species
+  LEFT JOIN observations
+  ON species.genus_ioc = observations.genus_ioc
+  LEFT JOIN locations
+  ON observations.location_name = locations.location_name
+WHERE species.species_familiar = 'Bat Falcon'
+ORDER BY date_obs
+;
+```
+
+In France 
+
+
+
+The Ramphastidae is a colorful family of birds restricted to the Neotropics that includes the toucans and their relatives. Construct a single query that returns all of the genera in the Ramphastidae, as well as the number of species in each genus. Hint: the last query under Aliases and the first query under Joins in the notebook from class contain code that may be helpful.
+
+```{sql, jquery-2, connection=con, error = TRUE}
+SELECT genus_ioc, num_sp FROM genera WHERE family_ioc = 'Ramphastidae'
+```
+
+
+
+What was the day that Greg recorded the greatest diversity of bird species? Where in the world was he on this epic day? (A) First, write a single query that returns the date on which the largest total number of species was observed. (B) Next, write a separate query that returns all of the locations on that day where an observation was recorded. Use aliases to make the meaning of the columns clear. (C) Optional bonus question: What was the day that Greg observed the largest number of species for the first time?
+```{sql, jquery-3, connection=con, error = TRUE}
+
+
+SELECT 
+  observations.id_conf, 
+  observations.date_obs,
+  COUNT(observations.id_conf) AS 'recorded_species'
+FROM observations
+GROUP BY observations.id_conf, observations.date_obs
+ORDER BY recorded_species DESC
+;
+
+
+SELECT
+  observations.location_name,
+  observations.date_obs
+FROM observations
+WHERE date_obs == '2012-06-29'
+```
+
+# data lunch from previous week 
+It was interesting to learn about the such as large and extensive dataset of baboons. Since its large, the importance of keeping the same conventions when inputting new information becomes clear as well as the need for data validation. This dataset with millions of rows also highlights the power of SQL. 
+ 
