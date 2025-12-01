@@ -1,0 +1,78 @@
+---
+title: "mdp86 notebook"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## Useful packages
+
+-   patchwork for putting plots together
+
+-   Plotly for interactive plot
+
+-   esquisse to make basic plots by dragging and dropping elements
+
+-   Euler for making venn diagram
+
+-   ggbeeswarm package for violin point plots
+
+-   ggtree and ape for building trees
+
+-   gt for making tables
+
+-   ggrepel for labeling
+
+-   ggally for multivariate plotes
+
+-   ggmagnify for making magnified insets for area of interest
+
+-   devtools to get files or packages from github
+
+-   exists function to check if a function with specific name exists in R
+
+-   ggforce to provide missiing functions through ggplot extenstions
+
+-   <https://exts.ggplot2.tidyverse.org/gallery/>
+
+-   <https://posit.co/resources/cheatsheets/>
+
+## specify the encoding to read in files 
+
+```{r error=TRUE}
+# fix the error by specifying the correct encoding using the local argument
+# also tell read_tsv there are no col_names
+
+tecan <- read_tsv("~/Bio724/cryptococcus_tecan_run.txt",
+                  locale = locale(encoding = "windows-1252"),
+                  col_names = FALSE)
+```
+
+## working with multilayer labels
+
+extract the column names from each layer. depending on what information from the title and column are imporatant assign the names.
+
+```{r error=TRUE}
+fig_E_data <- sheets[[4]]
+fig_E_data <- fig_E_data[-c(1,2), ]
+fig_E_data_gonad <- fig_E_data[ , c(1:12)]
+second_header <- fig_E_data_gonad[1,]
+second_header_col_names <- unname(unlist(second_header))
+second_header_two <- second_header[,c(1,3,5,7,9,11)]
+names(fig_E_data_gonad) <- second_header_col_names
+names(fig_E_data_gonad)[c(2,4,6,8,10,12)] <- second_header_two
+fig_E_data_gonad <- fig_E_data_gonad[-c(1,2), ]
+fig_E_data_gonad <- fig_E_data_gonad[,c(2,4,6,8,10,12)]
+```
+
+![](images/clipboard-264509325.png)
+
+![](images/clipboard-4261205710.png)
+
+## uses for sql 
+
+![](images/clipboard-3402001924.png)
