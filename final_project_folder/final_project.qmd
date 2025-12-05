@@ -1,0 +1,642 @@
+---
+title: "Final project"
+author: "Mansi Patel, mdp86"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## 
+
+```{r}
+#install.packages("ggvenn")
+library(ggvenn)
+library(readxl)
+library(purrr)
+library(tidyverse)
+library(stringr)
+library(patchwork)
+library(ggrepel)
+
+#install.packages("devtools")
+#devtools::install_github("jolars/eulerr")
+
+library(eulerr)
+
+```
+
+```{r}
+#ger the names of the sheets in the file 
+sheet_names <- excel_sheets("pnas.2322588121.sd02.xlsx")
+
+#loop through all the data sheets and get them individually
+sheets <- map(sheet_names, ~read_excel("pnas.2322588121.sd02.xlsx", sheet = .x))
+names(sheets) <- sheet_names
+
+```
+
+```{r clean the data }
+#get individual data frames
+fig_A_data <- sheets[[1]]
+names(fig_A_data) <- c("all_sample_UniProt_accession", "all_sample_gene_name", "one_sample_UniProt_accession", "one_sample_gene_name")
+fig_A_data <- fig_A_data[-c(1,2,3), ]
+fig_A_data <- fig_A_data |> 
+  select(all_sample_gene_name, one_sample_gene_name)
+
+
+
+fig_B_data <- sheets[[2]]
+names(fig_B_data) <- c("all_sample_UniProt_accession", "all_sample_gene_name", "one_sample_UniProt_accession", "one_sample_gene_name")
+fig_B_data <- fig_B_data[-c(1,2,3), ]
+fig_B_data <- fig_B_data |> 
+  select(all_sample_gene_name, one_sample_gene_name)
+
+
+fig_CD_data <- sheets[[3]]
+fig_CD_data_col_names <- fig_CD_data[2,]
+fig_CD_data_col_names <-unname(unlist(fig_CD_data_col_names))
+names(fig_CD_data) <- fig_CD_data_col_names
+fig_CD_data <- fig_CD_data[-c(1, 2), ]
+
+
+
+fig_E_data <- sheets[[4]]
+fig_E_data <- fig_E_data[-c(1,2), ]
+fig_E_data_gonad <- fig_E_data[ , c(1:12)]
+second_header <- fig_E_data_gonad[1,]
+second_header_col_names <- unname(unlist(second_header))
+second_header_two <- second_header[,c(1,3,5,7,9,11)]
+names(fig_E_data_gonad) <- second_header_col_names
+names(fig_E_data_gonad)[c(2,4,6,8,10,12)] <- second_header_two
+fig_E_data_gonad <- fig_E_data_gonad[-c(1,2), ]
+fig_E_data_gonad <- fig_E_data_gonad[,c(2,4,6,8,10,12)]
+
+
+fig_E_data_intestine <- fig_E_data[ , c(14:25)]
+second_header_intestine <- fig_E_data_intestine[1,]
+second_header_col_names <- unname(unlist(second_header_intestine))
+second_header_two <- second_header_intestine[,c(1,3,5,7,9,11)]
+names(fig_E_data_intestine) <- second_header_col_names
+names(fig_E_data_intestine)[c(2,4,6,8,10,12)] <- second_header_two
+fig_E_data_intestine <- fig_E_data_intestine[-c(1,2), ]
+fig_E_data_intestine <- fig_E_data_intestine[,c(2,4,6,8,10,12)]
+
+
+fig_FG_data <- sheets[[5]]
+fig_FG_data <- fig_FG_data[-1,]
+second_header_FG <- fig_FG_data[1,]
+second_header_FG_first_half <- second_header_FG[,c(1,3,5)]
+names(fig_FG_data)[c(2,4,6)] <- second_header_FG_first_half
+second_header_FG_second_half <- fig_FG_data[2,][,c(7:16)]
+names(fig_FG_data)[c(7:16)] <- second_header_FG_second_half
+
+```
+
+# Fig A
+
+```{r fig A calculations}
+all_sample_gene_name <- unique(fig_A_data$all_sample_gene_name)
+length_all_sample_gene_name <- length(all_sample_gene_name)
+
+one_sample_gene_name <- unique(fig_A_data$one_sample_gene_name)
+
+legnth_of_the_matches <- length(intersect(all_sample_gene_name, one_sample_gene_name))
+
+```
+
+radius of the bigger circle is 1, the area of this circle represents 100% genes. the area of the smaller circle represents 82.7% of that. area of circle is pi r\^2. based on that the radius of the smaller circle should be
+
+radius_of_small_circle\^2/1 = 0.827
+
+radius_of_small_circle = 0.9093954
+
+```{r fig A plotting}
+# radius calculation for the smaller circle
+data <- data.frame(x = c(0,0.09),
+                   y = c(0,0),
+                   r = c(1, 0.9093954),
+                   fill = c("#00CD66", "#C1FFC1"),
+                   label = c("6 single gonad samples\n4,012", "1 gonad sample\n3,316\n(82.7%)"))
+                   
+library(ggforce)
+fig_A <- 
+  ggplot(data, aes(x0 = x, y0 = y, r = r)) +
+  geom_circle(aes(fill = fill), color = NA) +
+  scale_fill_identity() +
+  geom_text(
+    data = data[1,],
+    aes(x = x, y = 1.1, label = label),
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = data[2,],
+    aes(x = x, y = y, label = label),
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = data[2,],
+    aes(x = x, y = y, label = label),
+    fontface = "bold"
+  ) +
+  annotate("text",
+           x = -0.9, y = 0,
+           label = "696\n(17.3%)",
+           fontface = "bold")+
+  labs(title = "A") +
+   theme_no_axes() +
+  theme(aspect.ratio = 1) 
+ 
+
+fig_A
+ggsave("fig_A.png", fig_A, width = 5, height = 5)
+
+
+```
+
+# Fig B
+
+```{r fig B calculations}
+all_sample_gene_name <- unique(fig_B_data$all_sample_gene_name)
+length_all_sample_gene_name <- length(all_sample_gene_name)
+
+one_sample_gene_name <- unique(fig_B_data$one_sample_gene_name)
+
+legnth_of_the_matches <- length(intersect(all_sample_gene_name, one_sample_gene_name))
+
+```
+
+radius of the bigger circle is 1, the area of this circle represents 100% genes. the area of the smaller circle represents 77.4% of that. area of circle is pi r\^2. based on that the radius of the smaller circle should be
+
+radius_of_small_circle\^2/1 = 0.774
+
+radius_of_small_circle = 0.8797727
+
+```{r fig B plotting}
+# radius calculation for the smaller circle
+data <- data.frame(x = c(0,0.11),
+                   y = c(0,0),
+                   r = c(1, 0.8797727),
+                   fill = c("#7D26CD","#AB82FF"),
+                   label = c("6 single intestine samples\n3,732", "1 intestine sample\n2,889\n(77.4%)"))
+                   
+library(ggforce)
+fig_B <- 
+  ggplot(data, aes(x0 = x, y0 = y, r = r)) +
+  geom_circle(aes(fill = fill), color = NA) +
+  scale_fill_identity() +
+  geom_text(
+    data = data[1,],
+    aes(x = x, y = 1.1, label = label),
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = data[2,],
+    aes(x = x, y = y, label = label),
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = data[2,],
+    aes(x = x, y = y, label = label),
+    fontface = "bold"
+  ) +
+  annotate("text",
+           x = -0.9, y = 0,
+           label = "843\n(22.6%)",
+           fontface = "bold")+
+  labs(title = "B") +
+   theme_no_axes() +
+  theme(aspect.ratio = 1) 
+
+fig_B
+ggsave("fig_B.png", fig_B, width = 5, height = 5)
+
+#https://r-charts.com/colors/
+#https://www.youtube.com/watch?v=saFyipc7Wd8
+```
+
+# Fig C
+
+the gonad samples cluster together and intestine samples cluster together. However, the PCs based on the calculation here are different from the paper's.
+
+```{r}
+CD_PCA_data <- fig_CD_data[,-c(1,2,4,5)] 
+CD_PCA_data <- CD_PCA_data[complete.cases(CD_PCA_data[,2:13]),]
+
+sample_cols <- 2:13
+CD_PCA_data_complete <- CD_PCA_data[complete.cases(CD_PCA_data[,sample_cols]), ]
+
+
+matrix <- apply(CD_PCA_data_complete[, sample_cols], 2, function(x) as.numeric(as.character(x)))
+
+matrix <- as.matrix(matrix)
+
+rownames(matrix) <- CD_PCA_data_complete$`Gene name`
+
+PCA <- prcomp(t(matrix), scale. = TRUE)
+
+Tissue <- c("Gonad","Gonad","Gonad","Gonad","Gonad","Gonad","Intestine","Intestine","Intestine","Intestine","Intestine","Intestine" )
+
+
+PCA_dataframe <-
+  data.frame(
+  sample = colnames(matrix),
+  PC1 = PCA$x[,1],
+  PC2 = PCA$x[,2],
+  Tissue = Tissue
+)
+
+summary(PCA)
+fig_C <-
+  ggplot(PCA_dataframe,
+       aes(x = PC1, y = PC2,
+           color = Tissue)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = c("#00CD66","#AB82FF")) +
+  xlim(-50, 50) +
+  ylim(-60, 60) +
+  labs(x = "PC1: 56.93%", y = "PC2: 21.11%", title = "C\nPCA of single tissue samples") +
+  theme_bw()
+
+fig_C
+
+
+ggsave("fig_C.png", fig_C, width = 7, height = 5)
+```
+
+```{r error = TRUE}
+
+CD_PCA_data <- fig_CD_data[,-c(1,2,4,5)] 
+dataformin <- CD_PCA_data[,-1]
+sample_cols <- 2:13
+
+matrix <- apply(CD_PCA_data[, sample_cols], 2, function(x) as.numeric(as.character(x)))
+
+min_value <- min(matrix_numeric, na.rm = TRUE)
+matrix_numeric[is.na(matrix_numeric)] <- min_value * 0.01
+matrix_numeric <- as.matrix(matrix_numeric)
+
+
+rownames(matrix_numeric) <- CD_PCA_data$`Gene name`
+
+matrix_transposed <- t(matrix_numeric)
+
+#any(is.infinite(matrix_transposed))
+matrix_transposed[is.infinite(matrix_transposed)] <- 0
+PCA <- prcomp(t(matrix_transposed), scale. = TRUE)
+
+summary(PCA)
+
+```
+
+### Fig D 
+
+i tried to make the heat map with ggplot but then i found another package called pheatmap that made the tree at the top of the plot by default, which would be more conveinient than making the heat map and the tree separately and then combing the plots. So, for the final heat map, i used the pheatmap package.
+
+```{r error=TRUE}
+
+CD <- fig_CD_data[,-c(1,2,4,5)]
+CD <- na.omit(CD)
+CD[, 2:13] <- lapply(CD[, 2:13], as.numeric)
+
+heatmap_data <-
+  CD |> 
+  rowwise() |> 
+  mutate(across(-`Gene name`, ~(.-mean(c_across(-`Gene name`)))/sd(c_across(-`Gene name`)))) |> 
+  ungroup() |> 
+  pivot_longer(-`Gene name`, 
+               names_to = "sample",
+               values_to = "Z_score") 
+
+
+heatmap_data <- 
+  heatmap_data |> 
+  mutate(tissue = str_extract(heatmap_data$sample,".{3}$")) |> group_by(tissue)
+
+ggplot(heatmap_data,
+       aes(x = sample, y = `Gene name`, fill = Z_score)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "#0078ED", mid = "white", high = "red", midpoint = 0)
+
+```
+
+## heatmap calculation for pheatmap
+
+```{r final heatmap}
+library(pheatmap)
+library(tidyverse)
+
+heatmap_data <-
+  CD |> 
+  rowwise() |> 
+  mutate(across(-`Gene name`, ~(.-mean(c_across(-`Gene name`)))/sd(c_across(-`Gene name`)))) |> 
+  ungroup()
+
+tissue <- str_sub(colnames(heatmap_data)[-1], -3, -3)
+colnames(heatmap_data)[-1] <- tissue
+
+mat <- as.matrix(heatmap_data[,-1])
+rownames(mat) <- heatmap_data$`Gene name`
+
+
+```
+
+## plotting final heatmap 
+
+```{r error=TRUE}
+colnames(mat) <- make.unique(colnames(mat))
+
+sample_group <- c("Gonad","Gonad","Gonad","Gonad","Gonad","Gonad", "Intestine","Intestine","Intestine","Intestine","Intestine","Intestine")
+annotation_col <- data.frame(
+  Group = sample_group
+)
+rownames(annotation_col) <- colnames(mat)
+
+annotation_colors <- list(
+  Group = c(
+    Gonad = "#00CD66",
+    Intestine = "#AB82FF"
+  )
+)
+
+
+#00CD66","#AB82FF
+
+fig_D <- 
+  pheatmap(
+  mat,
+  color = colorRampPalette(c("#0078ED", "white", "red"))(50),
+  annotation_col = annotation_col,
+  annotation_colors = annotation_colors,
+  show_rownames = FALSE,
+  cluster_cols = TRUE,
+  cluster_rows = TRUE,
+  show_colnames = FALSE
+)
+
+fig_D
+ggsave("fig_D.png", fig_D, width = 5, height = 5)
+```
+
+### Fig E
+
+```{r fig E calculation}
+fig_E_data_gonad
+
+#sum(!is.na(fig_E_data_gonad$`Shared in all samples`))
+
+#sum(!is.na(fig_E_data_gonad$`Shared between five samples`))
+
+#sum(!is.na(fig_E_data_gonad$`Shared between four samples`))
+
+#sum(!is.na(fig_E_data_gonad$`Shared between three samples`))
+
+#sum(!is.na(fig_E_data_gonad$`Shared between two samples`))
+
+#sum(!is.na(fig_E_data_gonad$`Found in one sample only`))
+
+gonad_data <- data.frame(sapply(fig_E_data_gonad, function(col) sum(!is.na(col))))
+gonad_data$samples <- rownames(gonad_data)
+
+intestine_data <- data.frame(sapply(fig_E_data_intestine, function(col) sum(!is.na(col))))
+intestine_data$samples <- rownames(intestine_data)
+
+fig_E_data <- left_join(gonad_data, intestine_data)
+names(fig_E_data) <- c("gonad", "samples", "intestine")
+fig_E_data$samples <- c("6", "5", "4", "3", "2", "1")
+
+fig_E_data$gonad <- as.numeric(fig_E_data$gonad)
+fig_E_data$intestine <- as.numeric(fig_E_data$intestine)
+```
+
+\
+
+```{r plotting fig E}
+
+library(RColorBrewer)
+library(ggplot2)
+
+
+fig_E_long <-
+  fig_E_data |> 
+  pivot_longer(cols = c(gonad, intestine),
+               names_to = "group", values_to = "sums")
+
+gonad <- 
+  fig_E_long |> 
+  filter(group == "gonad") |> 
+ggplot(
+       aes(x = group, y = sums, fill = samples)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  scale_fill_brewer(palette = "Greens") +
+  geom_text(aes(label = samples),
+            position = position_stack(vjust = 0.5),
+            color = "black", size = 3) +
+  ylim(0,4000)+
+  xlab(NULL) +
+  ylab(NULL) +
+  theme(aspect.ratio = 2) +
+  theme_bw() 
+
+
+intestine <-
+  fig_E_long |> 
+  filter(group == "intestine") |> 
+ggplot(
+       aes(x = group, y = sums, fill = samples)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  scale_fill_brewer(palette = "Purples") +
+  geom_text(aes(label = samples),
+            position = position_stack(vjust = 0.5),
+            color = "black", size = 3) +
+  ylim(0,4000)+
+  xlab(NULL) +
+  ylab(NULL) +
+  theme(aspect.ratio = 2) +
+  theme_bw() 
+
+# Remove y-axis from second plot
+intestine_no_y <- intestine + theme(axis.title.y = element_blank(),
+                       axis.text.y = element_blank(),
+                       axis.ticks.y = element_blank())
+
+# Combine side by side 
+final_E <- gonad + intestine_no_y + plot_annotation(title = "E\nNumber of samples out of 6 in which\neach protein is identified")
+
+final_E
+ggsave("fig_E.png", plot = final_E, width = 5, height = 5)
+
+```
+
+### Fig F
+
+```{r error=TRUE}
+fig_f <- fig_FG_data[,c(2, 4, 6, 12)]
+
+names(fig_f) <- c("high_confident_gonad_enriched", "high_confident intestine_enriched", "gonad_enriched", "intestine_enriched")
+
+fig_f <- fig_f[-c(1,2),]
+
+genes <- list(
+  set1 = fig_f$high_confident_gonad_enriched,
+  set2 = fig_f$`high_confident intestine_enriched`,
+  set3 = fig_f$gonad_enriched,
+  set4 = fig_f$intestine_enriched
+)
+
+gene_sets <- lapply(genes, function(x) unique(na.omit(x)))
+names(gene_sets) <- c("High confident\ngonad proteins", 
+                      "High confident\nintestine proteins",
+                      "Gonad enriched", "intestine enriched")
+
+
+
+
+euler_data <- euler(gene_sets, shape = "circle")
+
+fig_F <-
+  plot(
+  euler_data,
+  fills = c("#C1FFC1","#AB82FF" , "#00CD66", "#7D26CD"),
+  edges = TRUE,
+  quantities = TRUE,
+  labels = list(font = 2, cex = 1.2), 
+)
+
+
+fig_F
+
+ggsave("fig_F.png", plot = fig_F, width = 7, height = 5)
+```
+
+### Fig G
+
+```{r error=TRUE}
+fig_G_gonad <- fig_FG_data[-c(1,2), c(9,10,12)]
+fig_G_intestine <- fig_FG_data[-c(1,2), c(12,15,16)]
+
+fig_G_gonad$`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)` <-
+  as.numeric(fig_G_gonad$`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)`)
+fig_G_gonad$`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)` <-
+  as.numeric(fig_G_gonad$`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`)
+fig_G_gonad$tissue <- "gonad"
+
+
+
+
+fig_G_intestine$`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)` <-
+  as.numeric(fig_G_intestine$`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)`)
+fig_G_intestine$`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)` <-
+  as.numeric(fig_G_intestine$`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`)
+fig_G_intestine$tissue <- "intestine"
+
+
+
+
+fig_G_gonad <- fig_G_gonad |> 
+  filter(!is.na(`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)`) &
+           !is.na(`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`)) |> 
+  mutate(log10p = -log10(`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`))
+fig_G_intestine <- fig_G_intestine |> 
+  filter(!is.na(`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)`) &
+           !is.na(`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`)) |> 
+  mutate(log10p = -log10(`Abundance Ratio P-Value: (WT-Ix1) / (WT-Gx1)`))
+
+
+
+
+
+combined_data <- bind_rows(fig_G_gonad, fig_G_intestine)
+
+
+
+
+
+
+
+
+```
+
+### Some of the data for the volcano plot is missing. Only the genes that are above the 0.05 pvalue are there in the dataset. I tried labeling the genes using cutoff but couldn't find one that would label all the genes that they have labeled. I tried to manually label the genes that they labeled, some of them are still not showing up.  
+
+### I also couldn't find the data that they used to make the tables around the plot. it is supposed to be "maxed out" fold change that weren't shown on the plot. The dataset doesn't have a fold change that is above 8 and below -8. anything between that is plotted. 
+
+```{r error=TRUE}
+
+gene_to_label <- c("prp-8", "let-716", "fln-1", "glh-1", "nmy-2", "cey-2", "snrp-200", "cey-3", "npp-12", "ngp-1", "cgh-1", "asb-1", "car-1, his-40", "ech-6", "vha-11", "hphd-1", "dct-18", "vgln-1", "dhs-28", "acdh-1", "act-5", "vha-8", "asp-6", "vha-13", "fat-2", "asp-1", "let-767", "vha-12", "lro-1")
+
+label_data <- combined_data[combined_data$`Gene name` %in% gene_to_label, ]
+
+ 
+  
+fig_G <-
+  ggplot(combined_data, 
+       aes(x = `Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)`, 
+           y = log10p, 
+           color = tissue)) +
+  geom_point(size = 1.5, na.rm = TRUE) +
+  scale_color_manual(values = 
+                       c("gonad"="#00CD66", "intestine"="#7D26CD"), guide = "none") +
+  ylim(0, 5) +
+  xlim(-8,8) +
+  labs(y = "-log10(p-value)", x = "log2(FC)") +
+  geom_vline(xintercept = c(-1, 1), 
+             linetype = "dashed", 
+             color = "grey") +
+  geom_hline(yintercept = -log10(0.05), 
+             linetype = "dashed", 
+             color = "grey") +
+  geom_label_repel(data = label_data,
+                  aes(label = `Gene name`),
+                  size = 3,
+                  box.padding = unit(0.01, "lines"),
+                  point.padding = unit(3, "lines"),
+                  max.overlaps = Inf,
+                  ) +
+  labs(title = "G") +
+  theme(aspect.ratio = 1) +
+  theme_bw()
+
+
+  
+  ggsave("fig_G.png", plot = fig_G, width = 7, height = 5)
+  
+  fig_G 
+```
+
+```{r error=TRUE}
+combined_data
+
+combined_data |> 
+  filter(`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)` > 6) |> arrange()
+
+combined_data |> 
+  filter(`Abundance Ratio (log2): (WT-Ix1) / (WT-Gx1)` < -6) |> count()
+```
+
+### 
+
+```{r}
+blank_fig <- ggplot() +theme_bw()
+
+final_plot <- (fig_A + fig_B + fig_C) / (blank_fig + final_E + fig_F) / (fig_G + blank_fig)
+
+final_plot
+ggsave("final_plot.png", plot = final_plot, width = 10, height = 10)
+```
+
+Resources used:
+
+A video by datadraft showed how to make circles in ggplot. i used the bases of that to make fig A and B <https://www.youtube.com/watch?v=saFyipc7Wd8>
+
+i used the following website to get the hexadecimal numbers: <https://r-charts.com/colors/>
+
+I used "[ggplot heatmap legend doesn't represent negative numbers](https://stackoverflow.com/questions/7536639/ggplot-heatmap-legend-doesnt-represent-negative-numbers)" on stack overflow to help with the ggmap heatmap.
+
+pheatmap <https://davetang.org/muse/2018/05/15/making-a-heatmap-in-r-with-the-pheatmap-package/>
+
+geom label repel <https://ggrepel.slowkow.com/reference/geom_text_repel>
+
+AI, especially the google searches that provides option to get AI output, was used for trouble shooting. It was mostly used for labeling in the volcano plot and using pheatmap package.
