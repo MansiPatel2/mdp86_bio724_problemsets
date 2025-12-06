@@ -25,6 +25,8 @@ library(ggrepel)
 #devtools::install_github("jolars/eulerr")
 
 library(eulerr)
+library(RColorBrewer)
+library(ggplot2)
 
 ```
 
@@ -219,7 +221,7 @@ ggsave("fig_B.png", fig_B, width = 5, height = 5)
 
 # Fig C
 
-the gonad samples cluster together and intestine samples cluster together. However, the PCs based on the calculation here are different from the paper's.
+the gonad samples cluster together and intestine samples cluster together. However, the PCs based on the calculation here are different from the paper's. I think the issue might be because of how the data was transformed. for example, they didn't specify how exactly they processed missing data or zeros. so i couldn't replicate their whole process exactly as them.
 
 ```{r}
 CD_PCA_data <- fig_CD_data[,-c(1,2,4,5)] 
@@ -415,8 +417,7 @@ fig_E_data$intestine <- as.numeric(fig_E_data$intestine)
 
 ```{r plotting fig E}
 
-library(RColorBrewer)
-library(ggplot2)
+
 
 
 fig_E_long <-
@@ -475,13 +476,13 @@ ggsave("fig_E.png", plot = final_E, width = 5, height = 5)
 ```{r error=TRUE}
 fig_f <- fig_FG_data[,c(2, 4, 6, 12)]
 
-names(fig_f) <- c("high_confident_gonad_enriched", "high_confident intestine_enriched", "gonad_enriched", "intestine_enriched")
+names(fig_f) <- c("high_confident_gonad_enriched", "high_confident_intestine_enriched", "gonad_enriched", "intestine_enriched")
 
 fig_f <- fig_f[-c(1,2),]
 
 genes <- list(
   set1 = fig_f$high_confident_gonad_enriched,
-  set2 = fig_f$`high_confident intestine_enriched`,
+  set2 = fig_f$high_confident_intestine_enriched,
   set3 = fig_f$gonad_enriched,
   set4 = fig_f$intestine_enriched
 )
@@ -621,11 +622,13 @@ combined_data |>
 ```{r}
 blank_fig <- ggplot() +theme_bw()
 
-final_plot <- (fig_A + fig_B + fig_C) / (blank_fig + final_E + fig_F) / (fig_G + blank_fig)
+final_plot <- (fig_A + fig_B + fig_C) / (blank_fig + final_E + fig_F) / (fig_G + blank_fig) 
 
 final_plot
 ggsave("final_plot.png", plot = final_plot, width = 10, height = 10)
 ```
+
+### some figures were distorted, so i have attached a power point showing each figure. 
 
 Resources used:
 
@@ -639,4 +642,4 @@ pheatmap <https://davetang.org/muse/2018/05/15/making-a-heatmap-in-r-with-the-ph
 
 geom label repel <https://ggrepel.slowkow.com/reference/geom_text_repel>
 
-AI, especially the google searches that provides option to get AI output, was used for trouble shooting. It was mostly used for labeling in the volcano plot and using pheatmap package.
+AI, especially the google searches that provides option to get AI output, was used for trouble shooting. It was mostly used for labeling in the volcano plot and using the pheatmap package.
